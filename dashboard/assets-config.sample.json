@@ -1,0 +1,78 @@
+{
+  "appName": "Compound Calc",
+  "theme": {
+    "primaryColor": "#1870C8",
+    "backgroundColor": "#f0f4f8",
+    "featureGraphicGradient": "linear-gradient(135deg, #1e88e5 0%, #1565c0 100%)",
+    "screenshotGradient": "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)"
+  },
+  "setupGuide": {
+    "description": "Capture screenshots for each scenario and save them according to the pattern below.",
+    "folderStructure": [
+      "store-assets/",
+      "  └── screenshots/",
+      "      └── {device}/",
+      "          └── {device}_{lang}_{num}_{suffix}.png"
+    ],
+    "example": "store-assets/screenshots/phone/phone_ko_01_main.png"
+  },
+  "scenarios": {
+    "01": {
+      "name": "Main Dashboard",
+      "desc": "Show the main calculation and result screen."
+    },
+    "02": {
+      "name": "Featured Content",
+      "desc": "Showcase a specific highlight or unique feature."
+    },
+    "03": {
+      "name": "Advanced Settings",
+      "desc": "Display customization and setup options."
+    }
+  },
+  "assets": {
+    "iconPath": "web/icons/Icon-512.png",
+    "screenshotPathPattern": "store-assets/screenshots/{device}/{device}_{lang}_{num}_{suffix}.png",
+    "suffixes": {
+      "01": "main",
+      "02": "scenarios",
+      "03": "trading",
+      "04": "advanced",
+      "05": "light"
+    }
+  },
+  "languages": [
+    {
+      "code": "ko",
+      "name": "한국어",
+      "title": "복리계산기",
+      "featureSubtitle": "투자의 마법을 가장 직관적으로 설계하세요",
+      "shortDescription": "가장 직관적인 복리 계산기. 자산 성장을 한눈에 확인하세요.",
+      "fullDescription": "복리 계산기 전문가용 버전입니다. 다양한 시나리오와 트레이딩 모드를 지원합니다.",
+      "changelog": "• 전문가용 복리 계산 로직 업데이트\n• 다크 모드 UI 개선",
+      "screens": [
+        "가장 직관적인 복리 계산기",
+        "한눈에 들어오는 자산 성장 차트",
+        "데이 트레이더를 위한 완벽 지원",
+        "고급 단위 적립 및 인출 시뮬레이션",
+        "다크 및 라이트 테마 지원"
+      ]
+    },
+    {
+      "code": "en",
+      "name": "영어",
+      "title": "Compound Interest Calculator",
+      "featureSubtitle": "Visualize the Magic of Compounding",
+      "shortDescription": "Intuitive compound interest calculator. Visualize your wealth growth.",
+      "fullDescription": "Professional compound interest calculator supporting various scenarios and trading modes.",
+      "changelog": "• Updated professional compounding logic\n• Improved dark mode UI",
+      "screens": [
+        "Intuitive Compound Calculator",
+        "Visualize Your Wealth Growth",
+        "Advanced Day Trading Mode",
+        "Custom Contributions & Withdrawals",
+        "Dark & Light Themes"
+      ]
+    }
+  ]
+}

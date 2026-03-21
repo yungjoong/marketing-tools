@@ -1,0 +1,27 @@
+# marketing-tools/fastlane/Fastfile.common
+
+# This file is shared across multiple projects.
+# Usage: import "../../tools/marketing-tools/fastlane/Fastfile.common"
+
+platform :android do
+  desc "Generate Google Play metadata from tools/assets-config.json"
+  lane :generate_metadata do |options|
+    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    tools_dir = File.join(project_root, "tools", "marketing-tools")
+    
+    # Path to the script relative to this file's location
+    script_path = File.expand_path("../scripts/generate_gp_metadata.py", __FILE__)
+    
+    sh "python \"#{script_path}\" --root \"#{project_root}\""
+  end
+
+  desc "Organize screenshots for Fastlane upload"
+  lane :organize_assets do |options|
+    source_dir = options[:source] || "store-assets/extracted"
+    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    
+    script_path = File.expand_path("../scripts/organize_gp_assets.py", __FILE__)
+    
+    sh "python \"#{script_path}\" --source \"#{source_dir}\" --root \"#{project_root}\""
+  end
+end

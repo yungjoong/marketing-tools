@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compound Calc Feature Graphic Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --text-color: #ffffff;
+            --accent-emerald: #10B981;
+            --font-family: 'Outfit', sans-serif;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 1024px; height: 500px;
+            overflow: hidden; font-family: var(--font-family);
+            background: #000;
+        }
+
+        .canvas {
+            width: 1024px; height: 500px;
+            background: var(--bg-gradient);
+            position: relative;
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 0 80px; box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Left: Logo and Text */
+        .content-left { z-index: 5; max-width: 580px; }
+
+        .app-icon {
+            width: 100px; height: 100px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 20px rgba(16, 185, 129, 0.2);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .title {
+            color: var(--text-color);
+            font-size: 58px; font-weight: 700;
+            margin: 0; line-height: 1.1;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            white-space: pre-wrap;
+        }
+
+        .subtitle {
+            color: var(--accent-emerald);
+            font-size: 26px; font-weight: 600;
+            margin-top: 14px;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Right: Floating Device Mockup */
+        .device-container {
+            position: absolute;
+            right: -20px; bottom: -80px;
+            transform: rotate(-10deg) translateY(20px);
+            z-index: 10;
+        }
+
+        .device-frame {
+            background: #000;
+            border: 6px solid #2a2a2c;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: -40px 40px 100px rgba(0,0,0,0.7);
+            width: 280px;
+        }
+
+        .screenshot {
+            width: 100%;
+            border-radius: 32px;
+            display: block;
+        }
+
+        /* Decorative Glows */
+        .glow {
+            position: absolute;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        .glow-1 { top: -200px; left: -100px; }
+        .glow-2 { bottom: -200px; right: 100px; }
+
+        /* Safe Zone Overlay (Optional for checking) */
+        .safe-zone {
+            position: absolute;
+            top: 50px; /* 10% of height */
+            left: 102px; /* 10% of width */
+            right: 102px;
+            bottom: 50px;
+            border: 2px dashed rgba(255,255,255,0.15);
+            pointer-events: none;
+            display: none; /* Toggle to 'block' to see */
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            width: 1024px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+
+        <div class="content-left">
+            <img class="app-icon" src="" alt="App Icon">
+            <h1 class="title">Global Tip Guide</h1>
+            <p class="subtitle">Quick Tip & Easy Split</p>
+        </div>
+
+        <div class="device-container">
+            <div class="device-frame">
+                <img class="screenshot" src="" alt="Screenshot">
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        Capture this area at 1024x500 using your browser's developer tools (F12).
+    </div>
+
+
+    <script>
+        async function updateLayout() {
+            const params = new URLSearchParams(window.location.search);
+            const titleText = params.get('title') || 'App Title';
+            const subtitleText = params.get('subtitle') || 'App Subtitle';
+            const imgSrc = params.get('img') || '';
+            const iconSrc = params.get('icon') || '';
+            const langCode = params.get('lang') || 'ko';
+
+            document.documentElement.lang = langCode;
+            
+            // Shrink to fit logic for title and subtitle
+            function shrinkToFit(element, maxWidth, minSize) {
+                let fontSize = parseInt(window.getComputedStyle(element).fontSize);
+                while (element.scrollWidth > maxWidth && fontSize > minSize) {
+                    fontSize -= 1;
+                    element.style.fontSize = fontSize + 'px';
+                }
+            }
+
+            const titleEl = document.querySelector('.title');
+            const subtitleEl = document.querySelector('.subtitle');
+            
+            titleEl.innerText = titleText;
+            subtitleEl.innerText = subtitleText;
+            
+            const ssEl = document.querySelector('.screenshot');
+            
+            // Set up fallback handler immediately so it works even for DOM-injected sources
+            ssEl.onerror = function() {
+                const currentSrc = this.src;
+                if (!currentSrc || currentSrc.includes('_en_')) return;
+                const fallbackSrc = currentSrc.replace(/_([a-z]{2})_(\d{2})_/, '_en_$2_');
+                if (fallbackSrc !== currentSrc) {
+                    console.log(`Image not found: ${currentSrc}. Falling back to: ${fallbackSrc}`);
+                    this.src = fallbackSrc;
+                }
+            };
+
+            if (imgSrc) ssEl.src = imgSrc;
+            if (iconSrc) document.querySelector('.app-icon').src = iconSrc;
+
+            // Wait for rendering and then adjust
+            setTimeout(() => {
+                shrinkToFit(titleEl, 600, 24); // Title max width 600px, min font size 24px
+                shrinkToFit(subtitleEl, 600, 16); // Subtitle max width 600px, min font size 16px
+            }, 50);
+
+            // Wait for Google Fonts to be fully loaded so html2canvas renders them properly
+            await document.fonts.ready;
+        }
+        window.onload = updateLayout;
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Screenshot Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --text-color: #ffffff;
+            --frame-color: #1a1a1b;
+            --bezel-color: #000000;
+            --font-family: 'Outfit', sans-serif;
+            --accent-glow: rgba(16, 185, 129, 0.2); /* Emerald glow */
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: var(--font-family);
+            background: var(--bg-gradient);
+        }
+
+        .container {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; box-sizing: border-box;
+            padding: 0;
+        }
+
+        /* Title Styling */
+        .title-wrapper {
+            margin-top: 60px;
+            margin-bottom: 40px;
+            text-align: center;
+            width: 85%;
+            z-index: 10;
+        }
+
+        .title {
+            color: var(--text-color);
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.25;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            white-space: pre-wrap;
+            letter-spacing: -0.02em;
+        }
+
+        /* Modern Device Frame */
+        .device-wrapper {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            perspective: 1000px;
+            overflow: hidden;
+        }
+
+        .device-frame {
+            position: relative;
+            background: var(--bezel-color);
+            border: 6px solid #2a2a2c; /* Metal rim */
+            border-radius: 48px 48px 0 0;
+            width: 78%;
+            height: 92%; /* Extends off-screen bottom */
+            box-shadow: 
+                0 -20px 80px rgba(0,0,0,0.6),
+                inset 0 0 4px rgba(255,255,255,0.1);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Dynamic Island / Notch */
+        .dynamic-island {
+            position: absolute;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 36px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 100;
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.1);
+        }
+
+        /* Screenshot Container */
+        .ss-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 0;
+            border-radius: 38px 38px 0 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .screenshot {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Glass Reflection */
+        .glass-shine {
+            position: absolute;
+            top: -100%; left: -100%;
+            width: 200%; height: 200%;
+            background: linear-gradient(
+                135deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.03) 45%, 
+                rgba(255,255,255,0.06) 50%, 
+                rgba(255,255,255,0.03) 55%, 
+                rgba(255,255,255,0) 100%
+            );
+            transform: rotate(-15deg);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Side Buttons */
+        .button {
+            position: absolute;
+            background: #1a1a1c;
+            border-radius: 2px;
+            z-index: -1;
+        }
+        .btn-power { top: 120px; right: -8px; width: 4px; height: 60px; }
+        .btn-vol-up { top: 100px; left: -8px; width: 4px; height: 40px; }
+        .btn-vol-down { top: 155px; left: -8px; width: 4px; height: 40px; }
+
+        /* Mode Adjustments */
+        .landscape-mode .device-frame {
+            height: 80%;
+            width: 85%;
+            align-self: center;
+            border-radius: 40px;
+            margin-bottom: 40px;
+        }
+        .landscape-mode .ss-container {
+            bottom: 10px;
+            border-radius: 30px;
+        }
+        .landscape-mode .dynamic-island {
+            display: none; /* Hide in landscape for simplicity */
+        }
+
+        .tablet-mode .device-frame { width: 85%; border-radius: 32px 32px 0 0; }
+        .tablet-mode .dynamic-island { width: 160px; height: 12px; top: 18px; }
+
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="title-wrapper">
+            <div id="title" class="title">Global Tip Guide</div>
+        </div>
+        <div class="device-wrapper">
+            <div id="frame" class="device-frame">
+                <div class="button btn-power"></div>
+                <div class="button btn-vol-up"></div>
+                <div class="button btn-vol-down"></div>
+                <div class="dynamic-island"></div>
+                <div class="ss-container">
+                    <img id="screenshot" class="screenshot" src="" alt="App Screenshot">
+                    <div class="glass-shine"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function updateLayout() {
+            const params = new URLSearchParams(window.location.search);
+            const titleText = params.get('title') || 'Compound Calc';
+
+            // Set default image if none provided to avoid empty look
+            const imgSrc = params.get('img') || '';
+
+            const mode = params.get('mode') || 'phone'; // phone, tablet
+            const darkBg = params.get('dark') === 'true';
+
+            document.getElementById('title').innerText = titleText;
+
+            const imgEl = document.getElementById('screenshot');
+            
+            // Set up fallback handler immediately
+            imgEl.onerror = function() {
+                const currentSrc = this.src;
+                if (!currentSrc || currentSrc.includes('_en_')) return;
+                const fallbackSrc = currentSrc.replace(/_([a-z]{2})_(\d{2})_/, '_en_$2_');
+                if (fallbackSrc !== currentSrc) {
+                    console.log(`Image not found: ${currentSrc}. Falling back to: ${fallbackSrc}`);
+                    this.src = fallbackSrc;
+                }
+            };
+
+            if (imgSrc) imgEl.src = imgSrc;
+
+            // Wait for image to load to get its aspect ratio for a perfect fit
+            imgEl.onload = () => {
+                // Determine if the image is portrait or landscape
+                if (imgEl.naturalWidth > imgEl.naturalHeight) {
+                    document.getElementById('app').classList.add('landscape-mode');
+                }
+            };
+
+            if (mode === 'tablet') {
+                document.getElementById('app').classList.add('tablet-mode');
+            }
+
+            if (darkBg) {
+                document.getElementById('app').classList.add('dark-theme-mode');
+            }
+
+                        // Adaptive font size adjustment (Shrink-to-Fit)
+            function adjustFontSize() {
+                const titleElement = document.getElementById('title');
+                const containerHeight = window.innerHeight * 0.18; // Max 18% of screen height
+                let fontSize = parseFloat(window.getComputedStyle(titleElement).fontSize);
+                
+                // Keep shrinking until it fits within height or 15px minimum
+                while (titleElement.offsetHeight > containerHeight && fontSize > 15) {
+                    fontSize -= 2;
+                    titleElement.style.fontSize = fontSize + 'px';
+                }
+            }
+
+            // Frame width adjustment
+            const frame = document.getElementById('frame');
+            if (mode === 'phone') {
+                frame.style.width = '75%';
+            } else {
+                frame.style.width = '85%';
+            }
+
+            // Run adjustment after a small delay to ensure rendering
+            setTimeout(adjustFontSize, 50);
+
+            // Await fonts loaded for html2canvas safe layout
+            await document.fonts.ready;
+        }
+
+        window.onload = updateLayout;
+    </script>
+</body>
+</html>
+

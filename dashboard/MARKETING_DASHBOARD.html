@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>App Store Assets Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root { --brand-blue: #1870C8; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 40px; background: #f0f4f8; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #e1e8ed; }
+        h1 { color: var(--brand-blue); text-align: center; margin-bottom: 40px; }
+        h2 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; }
+        .lang-code { font-size: 0.7em; background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 20px; }
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--brand-blue); color: white; }
+        .btn-outline { background: white; color: var(--brand-blue); border: 2px solid var(--brand-blue); }
+        #status-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--brand-blue); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .alert { background: #fff3e0; padding: 15px; border-radius: 8px; border: 1px solid #ffe0b2; font-size: 14px; color: #e65100; margin-bottom: 25px; text-align: center; }
+        .guide-box { background: #e8f5e9; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #c8e6c9; }
+        .guide-box h3 { margin-top: 0; color: #2e7d32; }
+        .code-block { background: #263238; color: #eeffff; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 13px; margin: 10px 0; overflow-x: auto; line-height: 1.5; }
+        .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .scenario-item { background: white; padding: 12px; border-radius: 8px; border: 1px solid #eee; font-size: 13px; }
+        .scenario-item b { display: block; color: var(--brand-blue); margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div id="status-overlay">
+        <div class="loader"></div>
+        <div id="status-text">준비 중...</div>
+        <div id="status-subtext" style="font-size: 12px; margin-top: 10px; color: #aaa;">DOM 직접 주입 방식으로 생성 중...</div>
+    </div>
+
+    <div class="container">
+        <h1 id="app-name-title">App Store Assets Generator</h1>
+
+        <div class="alert">
+            💡 <b>필수:</b> 터미널에서 <b><code>npx serve .</code></b> 실행 후 접속하세요. 
+            <br>프로젝트 루트의 <code>assets-config.json</code>을 자동으로 읽어옵니다.
+        </div>
+
+        <div id="setup-guide-container"></div>
+        <div id="lang-list"></div>
+
+        <div class="card" style="text-align: center; margin-top: 40px; border: 2px dashed var(--brand-blue); background: #f8f9fa;">
+            <h2 style="justify-content: center;">📦 모든 언어 통합 패키지</h2>
+            <p style="margin-bottom: 20px;">모든 지원 언어를 합산하여 하나의 ZIP 파일로 생성합니다.</p>
+            <button class="btn btn-primary" onclick="generateAllPacks()" style="padding: 15px 30px; font-size: 1.1em;">
+                🚀 모든 언어 자산 통합 다운로드 (.ZIP)
+            </button>
+        </div>
+    </div>
+
+    <div id="render-target" style="position: absolute; left: -9999px; top: 0;"></div>
+
+    <script>
+        let config = null;
+
+        async function loadConfig() {
+            const params = new URLSearchParams(window.location.search);
+            // Default to ../assets-config.json relative to this file
+            const configPath = params.get('config') || '../assets-config.json';
+            
+            try {
+                console.log(`Attempting to load config from: ${configPath}`);
+                const response = await fetch(configPath);
+                if (!response.ok) throw new Error(`Config not found at ${configPath} (Status: ${response.status})`);
+                config = await response.json();
+                initializeApp();
+            } catch (err) {
+                console.warn("Config loading failed:", err.message);
+                // Fallback attempt: root level fetch if served via npx serve .
+                try {
+                    console.log("Attempting fallback load from /tools/assets-config.json");
+                    const response = await fetch('/tools/assets-config.json');
+                    if (response.ok) {
+                        config = await response.json();
+                        initializeApp();
+                        return;
+                    }
+                } catch (e) {}
+
+                try {
+                    console.log("Trying sample config...");
+                    const response = await fetch('assets-config.sample.json');
+                    config = await response.json();
+                    initializeApp();
+                } catch (sampleErr) {
+                    document.body.innerHTML = `
+                        <div style="padding: 50px; text-align: center; font-family: sans-serif;">
+                            <h2 style="color: #d32f2f;">⚠️ 설정 파일을 찾을 수 없습니다</h2>
+                            <p>설정 파일 위치: <code>${configPath}</code></p>
+                            <p>프로젝트 루트에 <code>assets-config.json</code> 파일을 생성하거나, <br>URL 파라미터로 경로를 지정해주세요. (예: <code>?config=path/to/config.json</code>)</p>
+                            <p style="font-size: 0.9em; color: #666;">기본 샘플을 보려면 <a href="?config=assets-config.sample.json">여기</a>를 클릭하세요.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+
+
+        function resolveScreenshotPath(pattern, device, langCode, num) {
+            const suffix = (config.assets.suffixes && config.assets.suffixes[num]) || '';
+            return pattern
+                .replace(/{device}/g, device)
+                .replace(/{lang}/g, langCode)
+                .replace(/{num}/g, num)
+                .replace(/{suffix}/g, suffix)
+                .replace(/_+\.png$/, '.png');
+        }
+
+        function initializeApp() {
+            document.title = `${config.appName} Marketing Dashboard`;
+            document.getElementById('app-name-title').innerText = `🚀 ${config.appName} 마케팅 자산 생성 대시보드`;
+            
+            if (config.theme && config.theme.primaryColor) {
+                document.documentElement.style.setProperty('--brand-blue', config.theme.primaryColor);
+            }
+
+            // Render Setup Guide & Scenarios
+            const guideContainer = document.getElementById('setup-guide-container');
+            if (config.setupGuide && config.scenarios) {
+                let scenariosHtml = '';
+                Object.entries(config.scenarios).forEach(([num, data]) => {
+                    scenariosHtml += `
+                        <div class="scenario-item">
+                            <b>${num}. ${data.name}</b>
+                            ${data.desc}
+                        </div>
+                    `;
+                });
+
+                guideContainer.innerHTML = `
+                    <div class="guide-box">
+                        <h3>📖 자산 생성 가이드</h3>
+                        <p>${config.setupGuide.description}</p>
+                        <div class="code-block">
+                            ${config.setupGuide.folderStructure.join('<br>').replace(/ /g, '&nbsp;')}
+                        </div>
+                        <p style="font-size: 12px; color: #666;">예시: <code>${config.setupGuide.example}</code></p>
+                        
+                        <h4 style="margin: 20px 0 10px 0;">📸 스크린샷 찰영 시나리오</h4>
+                        <div class="scenario-grid">${scenariosHtml}</div>
+                    </div>
+                `;
+            }
+
+            const listContainer = document.getElementById('lang-list');
+            const currentConfigParam = new URLSearchParams(window.location.search).get('config') || '../assets-config.json';
+            
+            config.languages.forEach(lang => {
+                const iconUrl = "/" + config.assets.iconPath;
+                const screenshotUrl = "/" + resolveScreenshotPath(config.assets.screenshotPathPattern, 'phone', lang.code, '01');
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h2>${lang.name} <span class="lang-code">${lang.code.toUpperCase()}</span></h2>
+                    <div class="action-bar">
+                        <button class="btn btn-primary" onclick="generatePack('${lang.code}')">📦 전체 자산 ZIP 다운로드</button>
+                        <a href="templates/google_play_feature_graphic?title=${encodeURIComponent(lang.title)}&subtitle=${encodeURIComponent(lang.featureSubtitle)}&lang=${lang.code}&icon=${encodeURIComponent(iconUrl)}&img=${encodeURIComponent(screenshotUrl)}&config=${encodeURIComponent(currentConfigParam)}" target="_blank" class="btn btn-outline">✨ 피처 그래픽 보기</a>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        async function generatePack(langCode) {
+            const lang = config.languages.find(l => l.code === langCode);
+            const overlay = document.getElementById('status-overlay');
+            const statusText = document.getElementById('status-text');
+            overlay.style.display = 'flex';
+
+            const zip = new JSZip();
+            try {
+                await buildLangAssets(lang, zip, statusText);
+                statusText.innerText = "파일 압축 중...";
+                const content = await zip.generateAsync({type: "blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `assets_${config.appName.replace(/\s+/g, '_')}_${langCode}.zip`;
+                link.click();
+            } catch (err) {
+                console.error(err);
+                alert("오류 발생: " + err.message);
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+
+        async function generateAllPacks() {
+            const overlay = document.getElementById('status-overlay');
+            const statusText = document.getElementById('status-text');
+            overlay.style.display = 'flex';
+
+            const masterZip = new JSZip();
+            try {
+                for (const lang of config.languages) {
+                    const langFolder = masterZip.folder(lang.code);
+                    await buildLangAssets(lang, langFolder, statusText);
+                }
+                statusText.innerText = "최종 통합 ZIP 압축 중...";
+                const content = await masterZip.generateAsync({type: "blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `all_marketing_assets_${config.appName.replace(/\s+/g, '_')}.zip`;
+                link.click();
+            } catch (err) {
+                console.error(err);
+                alert("오류 발생: " + err.message);
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+
+        async function buildLangAssets(lang, zipContainer, statusText) {
+            const devices = [
+                { id: 'phone', name: '휴대폰', w: 1242, h: 2208, mode: 'phone' },
+                { id: 'tablet7', name: '7인치 태블릿', w: 1200, h: 1920, mode: 'tablet' },
+                { id: 'tablet10', name: '10인치 태블릿', w: 2048, h: 2732, mode: 'tablet' }
+            ];
+
+            const fixTextLayout = (text) => {
+                if (!text) return "";
+                return text.split(' ').map(word =>
+                    `<span style="white-space: nowrap;">${word.split('').join('&ZeroWidthSpace;')}</span>`
+                ).join(' ');
+            };
+
+
+            // 1. 피처 그래픽
+            statusText.innerText = `${lang.name}: 피처 그래픽 생성 중...`;
+            const featureBlob = await captureDirect('templates/google_play_feature_graphic', 1024, 500, (doc) => {
+                doc.querySelector('.title').innerHTML = fixTextLayout(lang.title);
+                doc.querySelector('.subtitle').innerHTML = fixTextLayout(lang.featureSubtitle);
+                
+                if (config.assets.iconPath) {
+                    const iconEl = doc.querySelector('.app-icon');
+                    if (iconEl) iconEl.src = "/" + config.assets.iconPath;
+                }
+                
+                const firstSS = resolveScreenshotPath(config.assets.screenshotPathPattern, 'phone', lang.code, '01');
+                const ssEl = doc.querySelector('.screenshot');
+                if (ssEl) ssEl.src = "/" + firstSS;
+
+                if (config.theme.featureGraphicGradient) {
+                    doc.documentElement.style.setProperty('--bg-gradient', config.theme.featureGraphicGradient);
+                }
+            });
+            zipContainer.file(`feature_graphic_${lang.code}.png`, featureBlob);
+
+            // 2. 스크린샷들
+            for (const device of devices) {
+                const folder = zipContainer.folder(device.id);
+                for (let i = 1; i <= lang.screens.length; i++) {
+                    const imgNum = i.toString().padStart(2, '0');
+                    statusText.innerText = `${lang.name}: ${device.name} (${i}/${lang.screens.length}) 생성 중...`;
+                    
+                    const imgPath = "/" + resolveScreenshotPath(config.assets.screenshotPathPattern, device.id, lang.code, imgNum);
+
+                    const isLandscape = await checkOrientation(imgPath);
+                    let w = device.w;
+                    let h = device.h;
+                    if (isLandscape) { w = device.h; h = device.w; }
+
+                    const blob = await captureDirect('templates/marketing_template', w, h, (doc) => {
+                        const titleEl = doc.getElementById('title');
+                        const imgEl = doc.getElementById('screenshot');
+                        const appEl = doc.getElementById('app');
+                        const frameEl = doc.getElementById('frame');
+
+                        if (titleEl) titleEl.innerHTML = fixTextLayout(lang.screens[i-1]);
+                        if (imgEl) imgEl.src = imgPath;
+                        if (device.mode === 'tablet') appEl.classList.add('tablet-mode');
+                        if (isLandscape) appEl.classList.add('landscape-mode');
+                        
+                        // Theme injection
+                        if (config.theme.screenshotGradient) {
+                            doc.documentElement.style.setProperty('--bg-gradient', config.theme.screenshotGradient);
+                        }
+
+                        if (titleEl) {
+                            const fontSizeBase = isLandscape ? h : (h > w ? h : w);
+                            titleEl.style.fontSize = (fontSizeBase * (isLandscape ? 0.06 : 0.04)) + 'px';
+                        }
+                        if (frameEl) {
+                            frameEl.style.width = (device.mode === 'phone' ? '75%' : '85%');
+                        }
+                    });
+                    folder.file(`${device.id}_${lang.code}_${imgNum}.png`, blob);
+                }
+            }
+        }
+
+        async function checkOrientation(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img.width > img.height);
+                img.onerror = () => {
+                    if (src.includes('_en_')) { resolve(false); return; }
+                    const enSrc = src.replace(/_([a-z]{2})_(\d{2})_/, '_en_$2_');
+                    checkOrientation(enSrc).then(resolve);
+                };
+                img.src = src;
+            });
+        }
+
+        async function captureDirect(baseUrl, width, height, modifyFn) {
+            return new Promise((resolve, reject) => {
+                const iframe = document.createElement('iframe');
+                iframe.style.width = width + 'px';
+                iframe.style.height = height + 'px';
+                iframe.style.border = 'none';
+                iframe.src = baseUrl;
+                document.getElementById('render-target').appendChild(iframe);
+
+                iframe.onload = () => {
+                    const doc = iframe.contentWindow.document;
+                    modifyFn(doc);
+                    const img = doc.getElementById('screenshot') || doc.querySelector('.screenshot');
+                    const checkReady = async () => {
+                        // Small initial delay to allow src changes and fallback logic to trigger
+                        await new Promise(r => setTimeout(r, 600)); 
+                        
+                        if (img && img.src && !img.complete) {
+                            console.log(`Waiting for image load: ${img.src}`);
+                            await new Promise(resolve => {
+                                img.onload = resolve;
+                                img.onerror = resolve; // Continue even on error to avoid hanging
+                            });
+                            // Recursive check to handle if onerror triggered a fallback load
+                            return checkReady(); 
+                        }
+                        
+                        // Final safety delay for fonts and layout settling
+                        setTimeout(async () => {
+                            try {
+                                const canvas = await html2canvas(doc.body, {
+                                    width: width, height: height, scale: 1, useCORS: true, logging: false, letterRendering: 1
+                                });
+                                canvas.toBlob(blob => {
+                                    if (document.getElementById('render-target').contains(iframe)) {
+                                        document.getElementById('render-target').removeChild(iframe);
+                                    }
+                                    resolve(blob);
+                                }, 'image/png');
+                            } catch (e) { reject(e); }
+                        }, 800);
+                    };
+                    checkReady();
+                };
+            });
+        }
+
+        window.onload = loadConfig;
+    </script>
+</body>
+</html>

@@ -24,4 +24,15 @@ platform :android do
     
     sh "python \"#{script_path}\" --source \"#{source_dir}\" --root \"#{project_root}\""
   end
+
+  desc "Capture screenshots using integration_test"
+  lane :capture_screenshots do |options|
+    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    
+    Dir.chdir(project_root) do
+      # Run integration test to capture screenshots
+      # Note: This requires a connected device or emulator
+      sh "flutter test integration_test/screenshot_test.dart"
+    end
+  end
 end

@@ -28,11 +28,13 @@ platform :android do
   desc "Capture screenshots using integration_test"
   lane :run_screenshot_test do |options|
     project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    device_id = options[:device] || ENV["FLUTTER_DEVICE_ID"]
+    device_arg = device_id ? "-d #{device_id}" : ""
     
     Dir.chdir(project_root) do
       # Run integration test to capture screenshots
       # Note: This requires a connected device or emulator
-      sh "flutter test integration_test/screenshot_test.dart"
+      sh "flutter drive #{device_arg} --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart"
     end
   end
 end

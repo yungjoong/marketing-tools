@@ -1,0 +1,8 @@
+# Appfile.shared - Shared configuration for Fastlane
+# Use environment variables for project-specific values
+
+# Google Play JSON Key path (can be shared or local)
+json_key_file(ENV["SUPPLY_JSON_KEY_FILE"] || "C:/Users/yungjoong/fastlane-api-key.json")
+
+# Package name should be set in the local Appfile or via ENV
+# Example: package_name(ENV["PACKAGE_NAME"])

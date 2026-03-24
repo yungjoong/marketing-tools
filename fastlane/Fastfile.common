@@ -1,13 +1,27 @@
 # marketing-tools/fastlane/Fastfile.common
+require 'json'
 
-# This file is shared across multiple projects.
-# Usage: import "../../tools/marketing-tools/fastlane/Fastfile.common"
+# 헬퍼 함수: assets-config.json에서 언어 설정을 읽어옵니다.
+def get_languages(options = {})
+  project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+  config_path = File.join(project_root, "tools", "assets-config.json")
+  
+  if File.exist?(config_path)
+    config = JSON.parse(File.read(config_path))
+    return config["languages"].map { |l| l["code"] }
+  else
+    UI.error("설정 파일을 찾을 수 없습니다: #{config_path}")
+    return ["ko"] # 폴백
+  end
+rescue => e
+  UI.error("언어 설정을 읽는 중 오류 발생: #{e}")
+  ["ko"]
+end
 
 platform :android do
   desc "Generate Google Play metadata from tools/assets-config.json"
   lane :generate_metadata do |options|
     project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
-    tools_dir = File.join(project_root, "tools", "marketing-tools")
     
     # Path to the script relative to this file's location
     script_path = File.expand_path("../../scripts/generate_gp_metadata.py", __FILE__)
@@ -17,7 +31,7 @@ platform :android do
 
   desc "Organize screenshots for Fastlane upload"
   lane :organize_assets do |options|
-    source_dir = options[:source] || "store-assets/extracted"
+    source_dir = options[:source] || "store-assets/screenshots"
     project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
     
     script_path = File.expand_path("../../scripts/organize_gp_assets.py", __FILE__)
@@ -40,5 +54,83 @@ platform :android do
       # Pass LOCALE as a dart-define for the app
       sh "flutter drive #{device_arg} --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart --dart-define=LOCALE=#{locale}"
     end
+  end
+
+  desc "1단계: 모든 마케팅 자산 생성 및 로컬 정리 (전체 자동화)"
+  lane :prepare_marketing_assets do |options|
+    # 1. 스토어 텍스트 메타데이터 생성 (모든 언어 일괄 생성)
+    generate_metadata(options)
+
+    # 2. 모든 기기 및 모든 언어 스크린샷 촬영
+    capture_all_screenshots(options)
+
+    # 3. 추가 테마 자산 생성 (선택 사항, 스크립트 존재 시)
+    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    capture_assets_script = File.join(project_root, "tools", "scripts", "capture_assets.js")
+    
+    if File.exist?(capture_assets_script)
+      UI.important("테마 자산 생성 시나리오를 시작합니다. (Puppeteer 필요)")
+      begin
+        sh "node \"#{capture_assets_script}\""
+      rescue => e
+        UI.error("자동 캡처 중 오류 발생: #{e}. 수동으로 작업을 완료해 주세요.")
+      end
+    end
+  end
+
+  desc "모든 기기(Phone, Tablet 7/10) 및 모든 언어 스크린샷 일괄 촬영"
+  lane :capture_all_screenshots do |options|
+    # 연결된 기기 목록 확인
+    connected_devices = `flutter devices`.downcase
+    
+    # 에뮬레이터 ID 설정
+    devices = {
+      "phone" => options[:phone_id] || "emulator-5554",
+      "tablet7" => options[:tablet7_id] || "emulator-5556",
+      "tablet10" => options[:tablet10_id] || "emulator-5558"
+    }
+
+    # 실제로 연결되어 있는 기기들만 필터링
+    available_devices = devices.select { |type, id| connected_devices.include?(id.downcase) }
+
+    if available_devices.empty?
+      UI.error("❌ 실행 중인 에뮬레이터를 찾을 수 없습니다.")
+      UI.message("팁: 'flutter emulators --launch <ID>' 등으로 에뮬레이터를 먼저 실행해 주세요.")
+      raise "No active devices found for screenshots." unless options[:ignore_errors]
+    end
+
+    # 촬영할 언어 결정 (특정 언어 지정이 없으면 모든 언어 순회)
+    langs = options[:locale] ? [options[:locale]] : get_languages(options)
+    UI.message("🚀 다음 언어들에 대해 자동 촬영을 시작합니다: #{langs.join(', ')}")
+
+    langs.each do |lang|
+      UI.message("🌐 Language: #{lang} 시작")
+      available_devices.each do |type, id|
+        UI.message("📸 [#{lang}] Capturing #{type} (Device ID: #{id})...")
+        ENV["SCREENSHOT_DEVICE"] = type
+        run_screenshot_test(device: id, locale: lang)
+      end
+    end
+    
+    UI.success("✨ 모든 언어 및 기기에 대한 스크린샷 촬영이 완료되었습니다!")
+  end
+
+  desc "2단계: 로컬에 정리된 자산을 플레이 스토어에 업로드"
+  lane :upload_to_playstore do |options|
+    # 0. 메타데이터 생성 (tools/assets-config.json 기반)
+    generate_metadata(options)
+
+    # 1. 에셋 정리 (store-assets의 스크린샷을 metadata 폴더 구조로 복사)
+    organize_assets(source: "store-assets/screenshots")
+
+    # 2. 플레이 스토어 업로드 (이미지 및 메타데이터 전용)
+    supply(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: options[:skip_metadata] || false,
+      skip_upload_images: options[:skip_images] || false,
+      skip_upload_screenshots: options[:skip_screenshots] || false,
+      skip_upload_changelogs: true
+    )
   end
 end

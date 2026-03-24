@@ -30,11 +30,15 @@ platform :android do
     project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
     device_id = options[:device] || ENV["FLUTTER_DEVICE_ID"]
     device_arg = device_id ? "-d #{device_id}" : ""
+    locale = options[:locale] || "ko"
     
     Dir.chdir(project_root) do
+      # Set environment variable for the driver
+      ENV["SCREENSHOT_LOCALE"] = locale
+      
       # Run integration test to capture screenshots
-      # Note: This requires a connected device or emulator
-      sh "flutter drive #{device_arg} --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart"
+      # Pass LOCALE as a dart-define for the app
+      sh "flutter drive #{device_arg} --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart --dart-define=LOCALE=#{locale}"
     end
   end
 end

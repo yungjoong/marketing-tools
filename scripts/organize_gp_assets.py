@@ -14,55 +14,55 @@ def organize_assets(source_dir, project_root_str):
         'tablet10': 'tenInchScreenshots'
     }
 
+    lang_mapping = {
+        'ko': 'ko-KR',
+        'en': 'en-US',
+        'ja': 'ja-JP'
+    }
+
     if not os.path.exists(source_dir):
         print(f"Source directory not found: {source_dir}")
         return
 
-    for lang in os.listdir(source_dir):
-        lang_path = os.path.join(source_dir, lang)
-        if not os.path.isdir(lang_path):
+    # Iterate through device directories (phone, tablet7, tablet10)
+    for device_dir_name in os.listdir(source_dir):
+        device_path = os.path.join(source_dir, device_dir_name)
+        if not os.path.isdir(device_path):
             continue
             
-        gp_lang = 'ko-KR' if lang == 'ko' else 'en-US' if lang == 'en' else lang
-        lang_target = metadata_root / gp_lang / 'images'
+        print(f"Processing device directory: {device_dir_name}")
         
-        print(f"Processing {lang} -> {gp_lang}")
-        
-        # 1. Feature Graphic
-        feature_name = f"feature_graphic_{lang}.png"
-        feature_src = os.path.join(lang_path, feature_name)
-        if os.path.exists(feature_src):
-            os.makedirs(lang_target, exist_ok=True)
-            shutil.copy2(feature_src, lang_target / 'featureGraphic.png')
-            print(f"  [Match] Feature Graphic")
-
-        # 2. App Icon
-        icon_paths = [
-            project_root / 'assets' / 'icon' / 'icon.png',
-            project_root / 'android' / 'app' / 'src' / 'main' / 'res' / 'mipmap-xxxhdpi' / 'ic_launcher.png'
-        ]
-        
-        icon_src = next((p for p in icon_paths if p.exists()), None)
-        if icon_src:
-            os.makedirs(lang_target, exist_ok=True)
-            shutil.copy2(icon_src, lang_target / 'icon.png')
-            print(f"  [Match] App Icon from {icon_src.name}")
-
-        # 3. Screenshots
-        for src_dev, target_dev in device_map.items():
-            src_dev_path = os.path.join(lang_path, src_dev)
-            if not os.path.exists(src_dev_path):
+        # Iterate through files in the device directory
+        for file in os.listdir(device_path):
+            if not file.endswith('.png'):
+                continue
+            
+            # Pattern: {device}_{lang}_{num}_{suffix}.png
+            # Example: phone_en_01_main.png
+            parts = file.split('_')
+            if len(parts) < 3:
+                print(f"  [Skip] Invalid filename format: {file}")
                 continue
                 
-            target_dev_path = lang_target / target_dev
+            device_type = parts[0]
+            lang_code = parts[1]
+            num = parts[2]
+            
+            gp_lang = lang_mapping.get(lang_code, lang_code)
+            target_device_type = device_map.get(device_type, device_type)
+            
+            lang_target = metadata_root / gp_lang / 'images'
+            target_dev_path = lang_target / target_device_type
+            
             os.makedirs(target_dev_path, exist_ok=True)
             
-            for file in os.listdir(src_dev_path):
-                if file.endswith('.png'):
-                    parts = file.split('_')
-                    num = parts[-1] 
-                    shutil.copy2(os.path.join(src_dev_path, file), target_dev_path / num)
-                    print(f"  [Match] {src_dev} -> {target_dev}: {num}")
+            # Fastlane expects [num].png
+            target_file_name = f"{num}.png"
+            shutil.copy2(os.path.join(device_path, file), target_dev_path / target_file_name)
+            print(f"  [Match] {file} -> {gp_lang}/{target_device_type}/{target_file_name}")
+
+        # Note: Feature Graphic and App Icon logic could be added here if they follow a similar pattern,
+        # but for now we focus on the fixed screenshot structure.
 
     print("\nDone! Assets organized in android/fastlane/metadata/android/")
 

@@ -23,12 +23,14 @@ def generate_metadata(project_root_str):
         print(f"Config file not found! Checked: {[str(p) for p in config_paths]}")
         return
 
-    with open(config_path, 'r', encoding='utf-8') as f:
+    config_path_str = str(config_path)
+    with open(config_path_str, 'r', encoding='utf-8') as f:
         config = json.load(f)
 
     locale_mapping = {
         'ko': 'ko-KR',
-        'en': 'en-US'
+        'en': 'en-US',
+        'ja': 'ja-JP'
     }
 
     base_metadata_path = project_root / 'android' / 'fastlane' / 'metadata' / 'android'

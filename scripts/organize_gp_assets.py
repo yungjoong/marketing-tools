@@ -17,52 +17,77 @@ def organize_assets(source_dir, project_root_str):
     lang_mapping = {
         'ko': 'ko-KR',
         'en': 'en-US',
-        'ja': 'ja-JP'
+        'ja': 'ja-JP',
+        'de': 'de-DE',
+        'es': 'es-ES',
+        'zh': 'zh-CN',
+        'fr': 'fr-FR',
+        'pt': 'pt-BR'
     }
 
-    if not os.path.exists(source_dir):
-        print(f"Source directory not found: {source_dir}")
+    source_path = Path(source_dir)
+    if not source_path.is_absolute():
+        source_path = project_root / source_dir
+    
+    if not source_path.exists():
+        print(f"Source directory not found: {source_path}")
         return
 
-    # Iterate through device directories (phone, tablet7, tablet10)
-    for device_dir_name in os.listdir(source_dir):
-        device_path = os.path.join(source_dir, device_dir_name)
-        if not os.path.isdir(device_path):
-            continue
-            
-        print(f"Processing device directory: {device_dir_name}")
-        
-        # Iterate through files in the device directory
-        for file in os.listdir(device_path):
+    print(f"Scanning source directory: {source_path}")
+    
+    # Use os.walk for recursive search (supports lang/device structure)
+    for root, dirs, files in os.walk(str(source_path)):
+        for file in files:
             if not file.endswith('.png'):
                 continue
             
-            # Pattern: {device}_{lang}_{num}_{suffix}.png
-            # Example: phone_en_01_main.png
-            parts = file.split('_')
+            # Pattern check: {device}_{lang}_{num}_{suffix}.png
+            # Example: phone_en_01_main.png or phone_en_01.png
+            parts = file.replace('.png', '').split('_')
             if len(parts) < 3:
-                print(f"  [Skip] Invalid filename format: {file}")
+                # Some files might just be feature_graphic_{lang}.png
+                if file.startswith('feature_graphic_'):
+                    lang_code = file.replace('feature_graphic_', '').replace('.png', '')
+                    gp_lang = lang_mapping.get(lang_code, lang_code)
+                    target_path = metadata_root / str(gp_lang)
+                    os.makedirs(target_path, exist_ok=True)
+                    shutil.copy2(os.path.join(root, file), target_path / 'feature_graphic.png')
+                    print(f"  [Match] {file} -> {gp_lang}/feature_graphic.png")
                 continue
                 
-            device_type = parts[0]
+            # Heuristic: device is usually the first part
+            device_candidates = ['phone', 'tablet7', 'tablet10']
+            device_type = None
+            for cand in device_candidates:
+                if parts[0].startswith(cand):
+                    device_type = cand
+                    break
+            
+            if not device_type:
+                continue
+
             lang_code = parts[1]
             num = parts[2]
             
             gp_lang = lang_mapping.get(lang_code, lang_code)
-            target_device_type = device_map.get(device_type, device_type)
+            target_device_type = device_map.get(device_type)
             
-            lang_target = metadata_root / gp_lang / 'images'
-            target_dev_path = lang_target / target_device_type
+            if not gp_lang or not target_device_type:
+                continue
+                
+            lang_target = metadata_root / str(gp_lang) / 'images'
+            target_dev_path = lang_target / str(target_device_type)
             
             os.makedirs(target_dev_path, exist_ok=True)
             
-            # Fastlane expects [num].png
-            target_file_name = f"{num}.png"
-            shutil.copy2(os.path.join(device_path, file), target_dev_path / target_file_name)
+            # Fastlane expects [num].png for screenshots
+            if num.isdigit():
+                target_file_name = f"{int(num)}.png"
+            else:
+                target_file_name = f"{num}.png"
+                
+            shutil.copy2(os.path.join(root, file), target_dev_path / target_file_name)
             print(f"  [Match] {file} -> {gp_lang}/{target_device_type}/{target_file_name}")
-
-        # Note: Feature Graphic and App Icon logic could be added here if they follow a similar pattern,
-        # but for now we focus on the fixed screenshot structure.
 
     print("\nDone! Assets organized in android/fastlane/metadata/android/")
 

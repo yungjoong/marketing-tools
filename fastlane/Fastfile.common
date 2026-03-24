@@ -115,8 +115,8 @@ platform :android do
     UI.success("✨ 모든 언어 및 기기에 대한 스크린샷 촬영이 완료되었습니다!")
   end
 
-  desc "2단계: 로컬에 정리된 자산을 플레이 스토어에 업로드"
-  lane :upload_to_playstore do |options|
+  desc "공통: 로컬에 정리된 자산을 플레이 스토어에 업로드"
+  lane :common_upload_to_playstore do |options|
     # 0. 메타데이터 생성 (tools/assets-config.json 기반)
     generate_metadata(options)
 

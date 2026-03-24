@@ -186,6 +186,21 @@
 
             const mode = params.get('mode') || 'phone'; // phone, tablet
             const darkBg = params.get('dark') === 'true';
+            const configPath = params.get('config');
+
+            if (configPath) {
+                try {
+                    const response = await fetch(configPath);
+                    if (response.ok) {
+                        const config = await response.json();
+                        if (config.theme && config.theme.screenshotGradient) {
+                            document.documentElement.style.setProperty('--bg-gradient', config.theme.screenshotGradient);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load config:", e);
+                }
+            }
 
             document.getElementById('title').innerText = titleText;
 

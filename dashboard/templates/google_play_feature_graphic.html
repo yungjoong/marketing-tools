@@ -145,8 +145,28 @@
             const imgSrc = params.get('img') || '';
             const iconSrc = params.get('icon') || '';
             const langCode = params.get('lang') || 'ko';
+            const configPath = params.get('config');
 
             document.documentElement.lang = langCode;
+
+            if (configPath) {
+                try {
+                    const response = await fetch(configPath);
+                    if (response.ok) {
+                        const config = await response.json();
+                        if (config.theme) {
+                            if (config.theme.featureGraphicGradient) {
+                                document.documentElement.style.setProperty('--bg-gradient', config.theme.featureGraphicGradient);
+                            }
+                            if (config.theme.primaryColor) {
+                                document.documentElement.style.setProperty('--accent-emerald', config.theme.primaryColor);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load config:", e);
+                }
+            }
             
             // Shrink to fit logic for title and subtitle
             function shrinkToFit(element, maxWidth, minSize) {

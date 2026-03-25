@@ -51,9 +51,9 @@ def generate_metadata(project_root_str):
         path = base_metadata_path / gp_locale
         path.mkdir(parents=True, exist_ok=True)
         
-        # Title (limit 50)
+        # Title (limit 30)
         with open(path / 'title.txt', 'w', encoding='utf-8') as f:
-            f.write(lang['title'][:50])
+            f.write(lang['title'][:30])
             
         # Short description (limit 80)
         with open(path / 'short_description.txt', 'w', encoding='utf-8') as f:

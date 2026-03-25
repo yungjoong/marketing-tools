@@ -22,7 +22,8 @@ def organize_assets(source_dir, project_root_str):
         'es': 'es-ES',
         'zh': 'zh-CN',
         'fr': 'fr-FR',
-        'pt': 'pt-BR'
+        'pt': 'pt-BR',
+        'vi': 'vi'
     }
 
     source_path = Path(source_dir)

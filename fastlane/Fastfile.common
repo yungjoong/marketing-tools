@@ -26,7 +26,7 @@ platform :android do
     # Path to the script relative to this file's location
     script_path = File.expand_path("../../scripts/generate_gp_metadata.py", __FILE__)
     
-    sh "python \"#{script_path}\" --root \"#{project_root}\""
+    sh "set PYTHONIOENCODING=utf-8 && python \"#{script_path}\" --root \"#{project_root}\""
   end
 
   desc "Organize screenshots for Fastlane upload"
@@ -34,9 +34,17 @@ platform :android do
     source_dir = options[:source] || "store-assets/screenshots"
     project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
     
+    # Path to the script relative to this file's location
     script_path = File.expand_path("../../scripts/organize_gp_assets.py", __FILE__)
     
-    sh "python \"#{script_path}\" --source \"#{source_dir}\" --root \"#{project_root}\""
+    # Cleanup before organizing
+    metadata_dir = File.join(project_root, "android", "fastlane", "metadata", "android")
+    if Dir.exist?(metadata_dir)
+      UI.message("자산 정리 전 기존 메타데이터 삭제 중...")
+      FileUtils.rm_rf(metadata_dir)
+    end
+    
+    sh "set PYTHONIOENCODING=utf-8 && python \"#{script_path}\" --source \"#{source_dir}\" --root \"#{project_root}\""
   end
 
   desc "Capture screenshots using integration_test"

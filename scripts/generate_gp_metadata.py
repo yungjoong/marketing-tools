@@ -1,7 +1,14 @@
 import json
 import os
 import argparse
+import sys
 from pathlib import Path
+
+# Force UTF-8 output on Windows to avoid Fastlane encoding issues
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def generate_metadata(project_root_str):
     project_root = Path(project_root_str).absolute()

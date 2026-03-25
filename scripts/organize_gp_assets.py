@@ -2,7 +2,14 @@ import os
 import shutil
 import json
 import argparse
+import sys
 from pathlib import Path
+
+# Force UTF-8 output on Windows to avoid Fastlane encoding issues
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def organize_assets(source_dir, project_root_str):
     project_root = Path(project_root_str).absolute()
@@ -45,15 +52,28 @@ def organize_assets(source_dir, project_root_str):
             # Pattern check: {device}_{lang}_{num}_{suffix}.png
             # Example: phone_en_01_main.png or phone_en_01.png
             parts = file.replace('.png', '').split('_')
-            if len(parts) < 3:
-                # Some files might just be feature_graphic_{lang}.png
-                if file.startswith('feature_graphic_'):
-                    lang_code = file.replace('feature_graphic_', '').replace('.png', '')
-                    gp_lang = lang_mapping.get(lang_code, lang_code)
-                    target_path = metadata_root / str(gp_lang)
+            
+            # Special case: Icon and Feature Graphic
+            if file == 'app_icon.png':
+                # Copy to all supported languages by default (or just ko-KR for now)
+                # GP requires icon.png in [lang]/images/icon.png
+                for lang_code, gp_lang in lang_mapping.items():
+                    target_path = metadata_root / gp_lang / 'images'
                     os.makedirs(target_path, exist_ok=True)
-                    shutil.copy2(os.path.join(root, file), target_path / 'feature_graphic.png')
-                    print(f"  [Match] {file} -> {gp_lang}/feature_graphic.png")
+                    shutil.copy2(os.path.join(root, file), target_path / 'icon.png')
+                print(f"  [Match] {file} -> icon.png (All languages)")
+                continue
+
+            if file.startswith('feature_graphic_'):
+                lang_code = file.replace('feature_graphic_', '').replace('.png', '')
+                gp_lang = lang_mapping.get(lang_code, lang_code)
+                target_path = metadata_root / str(gp_lang) / 'images'
+                os.makedirs(target_path, exist_ok=True)
+                shutil.copy2(os.path.join(root, file), target_path / 'feature_graphic.png')
+                print(f"  [Match] {file} -> {gp_lang}/feature_graphic.png")
+                continue
+
+            if len(parts) < 3:
                 continue
                 
             # Heuristic: device is usually the first part
@@ -87,8 +107,12 @@ def organize_assets(source_dir, project_root_str):
             else:
                 target_file_name = f"{num}.png"
                 
-            shutil.copy2(os.path.join(root, file), target_dev_path / target_file_name)
-            print(f"  [Match] {file} -> {gp_lang}/{target_device_type}/{target_file_name}")
+            try:
+                shutil.copy2(os.path.join(root, file), target_dev_path / target_file_name)
+                print(f"  [Match] {file} -> {gp_lang}/{target_device_type}/{target_file_name}")
+            except Exception as e:
+                print(f"  [Error] Failed to copy {file} to {target_dev_path / target_file_name}: {e}")
+                raise
 
     print("\nDone! Assets organized in android/fastlane/metadata/android/")
 

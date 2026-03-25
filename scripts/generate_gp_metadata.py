@@ -30,7 +30,9 @@ def generate_metadata(project_root_str):
     locale_mapping = {
         'ko': 'ko-KR',
         'en': 'en-US',
-        'ja': 'ja-JP'
+        'ja': 'ja-JP',
+        'es': 'es-ES',
+        'vi': 'vi'
     }
 
     base_metadata_path = project_root / 'android' / 'fastlane' / 'metadata' / 'android'

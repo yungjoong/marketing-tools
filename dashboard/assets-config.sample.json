@@ -18,16 +18,24 @@
   },
   "scenarios": {
     "01": {
-      "name": "Main Dashboard",
-      "desc": "Show the main calculation and result screen."
+      "name": "Hourly Wage",
+      "desc": "Calculation of total pay (hours x wage)"
     },
     "02": {
-      "name": "Featured Content",
-      "desc": "Showcase a specific highlight or unique feature."
+      "name": "Intuitive UI",
+      "desc": "Simple arithmetic (addition/subtraction)"
     },
     "03": {
-      "name": "Advanced Settings",
-      "desc": "Display customization and setup options."
+      "name": "D-Day",
+      "desc": "Date difference calculation"
+    },
+    "04": {
+      "name": "Dark Mode",
+      "desc": "Premium dark interface"
+    },
+    "05": {
+      "name": "History & Units",
+      "desc": "Calculation history and unit conversion"
     }
   },
   "assets": {

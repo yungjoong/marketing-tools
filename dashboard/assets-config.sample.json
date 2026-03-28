@@ -51,7 +51,7 @@
   },
   "languages": [
     {
-      "code": "ko",
+      "code": "ko-KR",
       "name": "한국어",
       "title": "복리계산기",
       "featureSubtitle": "투자의 마법을 가장 직관적으로 설계하세요",
@@ -67,7 +67,7 @@
       ]
     },
     {
-      "code": "en",
+      "code": "en-US",
       "name": "영어",
       "title": "Compound Interest Calculator",
       "featureSubtitle": "Visualize the Magic of Compounding",

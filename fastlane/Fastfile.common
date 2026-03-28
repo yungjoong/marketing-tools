@@ -59,8 +59,8 @@ platform :android do
       ENV["SCREENSHOT_LOCALE"] = locale
       
       # Run integration test to capture screenshots
-      # Pass LOCALE as a dart-define for the app
-      sh "flutter drive #{device_arg} --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart --dart-define=LOCALE=#{locale}"
+      # Pass LOCALE and SCREENSHOT_MODE as a dart-define for the app
+      sh "flutter drive #{device_arg} --driver=tools/marketing-tools/test_driver/integration_test.dart --target=integration_test/screenshot_test.dart --dart-define=LOCALE=#{locale} --dart-define=SCREENSHOT_MODE=true"
     end
   end
 
@@ -88,6 +88,15 @@ platform :android do
 
   desc "모든 기기(Phone, Tablet 7/10) 및 모든 언어 스크린샷 일괄 촬영"
   lane :capture_all_screenshots do |options|
+    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    screenshot_dir = File.join(project_root, "store-assets", "screenshots")
+
+    # 기존 스크린샷 삭제 로직 추가
+    if Dir.exist?(screenshot_dir)
+      UI.message("🧹 기존 스크린샷 파일들을 삭제하는 중...")
+      FileUtils.rm_rf(Dir.glob("#{screenshot_dir}/*/*.png"))
+    end
+
     # 연결된 기기 목록 확인
     connected_devices = `flutter devices`.downcase
     

@@ -58,4 +58,4 @@ Create `tools/assets-config.json` in your project root to configure languages an
 ```bash
 npx serve .
 ```
-Access the dashboard at `http://localhost:3000/tools/marketing-tools/dashboard/MARKETING_DASHBOARD.html`
+Access the dashboard at `http://localhost:3000/tools/marketing-tools/dashboard/`

@@ -4,7 +4,7 @@ HTML/JS 기반의 앱 스토어 마케팅 자산(스크린샷, 피처 그래픽)
 이제 `assets-config.json` 파일을 통해 여러 프로젝트에서 공용으로 사용할 수 있습니다.
 
 ## 📁 폴더 구조
-- `MARKETING_DASHBOARD.html`: 메인 대시보드 (자산 생성 및 다운로드)
+- `index.html`: 메인 대시보드 (자산 생성 및 다운로드)
 - `assets-config.sample.json`: 설정 파일 샘플
 - `templates/`
   - `marketing_template.html`: 스크린샷 템플릿
@@ -41,10 +41,10 @@ npx serve .
 ```
 
 브라우저에서 대시보드에 접속합니다. (경로는 도구를 설치한 위치에 따라 다릅니다.)
-`http://localhost:3000/tools/assets-generator/MARKETING_DASHBOARD.html`
+`http://localhost:3000/tools/marketing-tools/dashboard/`
 
 설정 파일이 다른 위치에 있다면 `config` 파라미터로 지정할 수 있습니다.
-`.../MARKETING_DASHBOARD.html?config=../../my-custom-config.json`
+`.../dashboard/?config=../../my-custom-config.json`
 
 ## 📸 스크린샷 파일 규칙
 설정 파일의 `screenshotPathPattern`에 정의된 규칙을 따릅니다.

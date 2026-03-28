@@ -134,20 +134,26 @@ platform :android do
 
   desc "공통: 로컬에 정리된 자산을 플레이 스토어에 업로드"
   lane :common_upload_to_playstore do |options|
-    # 0. 메타데이터 생성 (tools/assets-config.json 기반)
+    # 1. 에셋 정리 (기본적으로 store-assets/extracted 에서 가져옴)
+    # organize_assets 내부에서 기존 metadata 폴더를 정리(삭제)하므로 먼저 실행해야 함
+    source_dir = options[:source] || "store-assets/extracted"
+    organize_assets(source: source_dir)
+
+    # 2. 메타데이터 생성 (tools/assets-config.json 기반)
+    # organize_assets 이후에 실행하여 텍스트 메타데이터가 유지되도록 함
     generate_metadata(options)
 
-    # 1. 에셋 정리 (store-assets의 스크린샷을 metadata 폴더 구조로 복사)
-    organize_assets(source: "store-assets/screenshots")
-
-    # 2. 플레이 스토어 업로드 (이미지 및 메타데이터 전용)
+    # 3. 플레이 스토어 업로드 (이미지 및 메타데이터 전용)
     supply(
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_metadata: options[:skip_metadata] || false,
       skip_upload_images: options[:skip_images] || false,
       skip_upload_screenshots: options[:skip_screenshots] || false,
-      skip_upload_changelogs: true
+      skip_upload_changelogs: true,
+      # 구글 API 서버 에러(Internal error) 발생 시 도움이 될 수 있는 옵션들
+      timeout: 300, # 타임아웃 연장
+      sync_image_upload: true # 이미지를 하나씩 순차적으로 업로드하여 안정성 향상
     )
   end
 end

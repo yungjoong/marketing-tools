@@ -69,8 +69,8 @@ def organize_assets(source_dir, project_root_str):
                 gp_lang = lang_mapping.get(lang_code, lang_code)
                 target_path = metadata_root / str(gp_lang) / 'images'
                 os.makedirs(target_path, exist_ok=True)
-                shutil.copy2(os.path.join(root, file), target_path / 'feature_graphic.png')
-                print(f"  [Match] {file} -> {gp_lang}/feature_graphic.png")
+                shutil.copy2(os.path.join(root, file), target_path / 'featureGraphic.png')
+                print(f"  [Match] {file} -> {gp_lang}/featureGraphic.png")
                 continue
 
             if len(parts) < 3:

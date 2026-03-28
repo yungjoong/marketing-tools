@@ -26,6 +26,7 @@ def organize_assets(source_dir, project_root_str):
         'en': 'en-US',
         'ja': 'ja-JP',
         'de': 'de-DE',
+        'ru': 'ru-RU',
         'es': 'es-ES',
         'zh': 'zh-CN',
         'fr': 'fr-FR',

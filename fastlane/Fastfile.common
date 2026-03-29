@@ -132,6 +132,29 @@ platform :android do
     UI.success("✨ 모든 언어 및 기기에 대한 스크린샷 촬영이 완료되었습니다!")
   end
 
+  desc "Build AAB and upload to Play Store Internal Track"
+  lane :upload_internal do |options|
+    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+
+    # 1. Generate Metadata (This picks up changelogs from tools/assets-config.json)
+    generate_metadata(project_root: project_root)
+
+    # 2. Flutter Build (AAB)
+    Dir.chdir(project_root) do
+      sh("flutter build appbundle")
+    end
+
+    # 3. Upload to Google Play
+    supply(
+      track: "internal",
+      aab: File.join(project_root, "build/app/outputs/bundle/release/app-release.aab"),
+      skip_upload_metadata: false,
+      skip_upload_images: true, 
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: false
+    )
+  end
+
   desc "공통: 로컬에 정리된 자산을 플레이 스토어에 업로드"
   lane :common_upload_to_playstore do |options|
     # 1. 에셋 정리 (기본적으로 store-assets/extracted 에서 가져옴)

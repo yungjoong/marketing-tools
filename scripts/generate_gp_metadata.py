@@ -1,8 +1,8 @@
 import json
-import os
 import argparse
 import sys
 from pathlib import Path
+import shutil
 
 # Force UTF-8 output on Windows to avoid Fastlane encoding issues
 if sys.platform == 'win32':
@@ -10,16 +10,17 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+
 def generate_metadata(project_root_str):
     project_root = Path(project_root_str).absolute()
-    
+
     # Try multiple common paths for assets-config.json
     config_paths = [
         project_root / 'tools' / 'assets-config.json',
         project_root / 'tools' / 'marketing-tools' / 'assets-config.json',
         project_root / 'assets-config.json'
     ]
-    
+
     config_path = None
     for p in config_paths:
         if p.exists():
@@ -34,6 +35,8 @@ def generate_metadata(project_root_str):
     with open(config_path_str, 'r', encoding='utf-8') as f:
         config = json.load(f)
 
+    # Note: assets-config.json codes are prioritized.
+    # This mapping is for shortcuts or legacy codes.
     locale_mapping = {
         'ko': 'ko-KR',
         'en': 'en-US',
@@ -44,26 +47,43 @@ def generate_metadata(project_root_str):
     }
 
     base_metadata_path = project_root / 'android' / 'fastlane' / 'metadata' / 'android'
-    
+
+    # Get active locales from config
+    active_locales = set()
     for lang in config['languages']:
         lang_code = lang['code']
         gp_locale = locale_mapping.get(lang_code, lang_code)
-        
+        active_locales.add(gp_locale)
+
+    # Cleanup: Remove directories not in the active config
+    if base_metadata_path.exists():
+        for item in base_metadata_path.iterdir():
+            if item.is_dir() and item.name not in active_locales:
+                print(f"Removing orphaned locale directory: {item.name}")
+                try:
+                    shutil.rmtree(item)
+                except Exception as e:
+                    print(f"Warning: Could not remove {item.name}: {e}")
+
+    for lang in config['languages']:
+        lang_code = lang['code']
+        gp_locale = locale_mapping.get(lang_code, lang_code)
+
         path = base_metadata_path / gp_locale
         path.mkdir(parents=True, exist_ok=True)
-        
+
         # Title (limit 30)
         with open(path / 'title.txt', 'w', encoding='utf-8') as f:
             f.write(lang['title'][:30])
-            
+
         # Short description (limit 80)
         with open(path / 'short_description.txt', 'w', encoding='utf-8') as f:
             f.write(lang['shortDescription'][:80])
-            
+
         # Full description (limit 4000)
         with open(path / 'full_description.txt', 'w', encoding='utf-8') as f:
             f.write(lang['fullDescription'])
-            
+
         # Changelog (limit 500)
         changelog = lang.get('changelog', '')
         if changelog:
@@ -71,7 +91,7 @@ def generate_metadata(project_root_str):
             changelogs_path.mkdir(exist_ok=True)
             with open(changelogs_path / 'default.txt', 'w', encoding='utf-8') as f:
                 f.write(changelog[:500])
-            
+
         print(f"Generated metadata for {gp_locale}")
 
 if __name__ == '__main__':

@@ -13,10 +13,10 @@ HTML/JS 기반의 앱 스토어 마케팅 자산(스크린샷, 피처 그래픽)
 ## 🚀 사용법 (프로젝트 적용 방법)
 
 ### 1. 도구 추가
-이 저장소를 프로젝트의 서브디렉토리(예: `tools/assets-generator`)에 `git submodule`로 추가하거나 소스 코드를 복사합니다.
+이 저장소를 프로젝트의 서브디렉토리(예: `tools/marketing-tools`)에 `git submodule`로 추가하거나 소스 코드를 복사합니다.
 
 ```bash
-git submodule add https://github.com/yungjoong/app-store-assets-generator.git tools/assets-generator
+git submodule add https://github.com/yungjoong/marketing-tools.git tools/marketing-tools
 ```
 
 ### 2. 설정 파일 생성

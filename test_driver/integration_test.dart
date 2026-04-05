@@ -1,19 +1,20 @@
 import 'dart:io';
 import 'package:integration_test/integration_test_driver_extended.dart';
 
-/// Generic integration test driver that saves screenshots to the host machine.
-/// This file is shared across projects via the marketing-tools submodule.
-Future<void> main() {
-  final String device = Platform.environment['SCREENSHOT_DEVICE'] ?? 'phone';
-  final String locale = Platform.environment['SCREENSHOT_LOCALE'] ?? 'en';
+Future<void> main() async {
+  await integrationDriver(
+    onScreenshot: (String screenshotName, List<int> screenshotBytes, [Map<String, Object?>? args]) async {
+      // screenshotName format: {langCode}_{scenarioKey}_{suffix}
+      final device = Platform.environment['DEVICE'] ?? 'phone';
 
-  return integrationDriver(
-    onScreenshot: (String name, List<int> image, [Map<String, Object?>? args]) async {
-      print('💾 Driver: Received screenshot bytes for "$name" (${image.length} bytes)');
-      // Standard path for marketing assets: store-assets/screenshots/{device}/
-      final File screenshot = await File('store-assets/screenshots/$device/${device}_${locale}_$name.png').create(recursive: true);
-      await screenshot.writeAsBytes(image);
-      print('✅ Driver: Screenshot saved to ${screenshot.path}');
+      final parts = screenshotName.split('_');
+      final langCode = parts[0];
+      final scenarioKey = parts[1];
+      final suffix = parts[2];
+
+      final fileName = '${device}_${langCode}_${scenarioKey}_$suffix.png';
+      final File image = await File('store-assets/screenshots/$device/$fileName').create(recursive: true);
+      await image.writeAsBytes(screenshotBytes);
       return true;
     },
   );

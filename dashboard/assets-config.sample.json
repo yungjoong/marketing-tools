@@ -1,5 +1,35 @@
 {
-  "appName": "Compound Calc",
+  "_INSTRUCTIONS_FOR_AI": {
+    "PURPOSE": "This is a sample/template for tools/assets-config.json. This file must be PROJECT-SPECIFIC. Do NOT copy this sample directly — replace all values to match the actual app.",
+    "RULES": {
+      "appName": "The app's display name as shown in the store listing.",
+      "theme": {
+        "primaryColor": "Brand color in HEX. Used in marketing dashboard UI and chart labels.",
+        "backgroundColor": "Dashboard background color in HEX.",
+        "featureGraphicGradient": "CSS linear-gradient for Feature Graphic (1024x500). Should match the app's brand.",
+        "screenshotGradient": "CSS linear-gradient for the screenshot frame background. Use a dark, premium color."
+      },
+      "setupGuide": "Leave folderStructure and example as-is. Only update the description if needed.",
+      "scenarios": {
+        "_WHAT_IS_THIS": "Defines each screenshot to be captured. Keys must be sequential: '01', '02', ... up to the number of screenshots you need. Google Play allows 4 to 8 screenshots per device type.",
+        "_COUNT_RULE": "You MUST define between 4 and 8 scenarios. Define exactly as many as the project needs — no more, no less.",
+        "_name_RULE": "A SHORT, CATCHY MARKETING SLOGAN for this screenshot. This text will be printed as the headline overlay on the screenshot image in the marketing template. It must be a compelling tagline (e.g., 'Think Ahead, Win Big!'), NOT a feature label (e.g., NOT 'Game Board' or 'Settings').",
+        "_desc_RULE": "A SCREENSHOT CAPTURE GUIDE for the person/automation taking the screenshot. It must describe EXACTLY what state the app should be in when the screenshot is taken: which screen to open, which settings to enable, what data/state to show. This is NOT a marketing description. Example: 'Open the game with AI mode selected, Hard difficulty, 8x8 board, mid-game state with at least 20 stones placed.'",
+        "_suffix_RULE": "The suffix key in assets.suffixes must match the scenario key ('01', '02', ...). The value is a short lowercase identifier used in the filename (e.g., 'main', 'gameplay', 'settings'). It must be unique per scenario."
+      },
+      "languages": {
+        "_WHAT_IS_THIS": "Define one entry per language the app supports. Only include languages actually supported in the app's UI.",
+        "_code_RULE": "Use BCP-47 format as accepted by Google Play: 'ko-KR', 'en-US', 'ja-JP', 'es-ES', 'fr-FR', 'de-DE', 'pt-BR', 'zh-Hans', etc.",
+        "_title_RULE": "The store listing title. Max 30 characters. No promotional text (e.g., no 'Free', 'Best', 'No Ads').",
+        "_shortDescription_RULE": "80 characters max. One compelling sentence summarizing the app's value.",
+        "_fullDescription_RULE": "Max 4000 characters. Write as an ASO-optimized description: (1) Start with the most important keyword (app name/category), (2) List key features as bullet points or short paragraphs, (3) Include relevant search keywords naturally, (4) Mention unique differentiators. Aim for 300+ characters minimum.",
+        "_featureSubtitle_RULE": "Short tagline for the Feature Graphic overlay (1024x500 banner). Keep under 60 characters.",
+        "_screens_RULE": "An array of marketing overlay texts for each screenshot. The array length MUST match the number of scenarios defined above (4–8). Each entry is the translated version of the scenario's 'name' — a short, catchy marketing phrase."
+      }
+    }
+  },
+
+  "appName": "Sample App",
   "theme": {
     "primaryColor": "#1870C8",
     "backgroundColor": "#f0f4f8",
@@ -17,69 +47,73 @@
     "example": "store-assets/screenshots/phone/phone_ko_01_main.png"
   },
   "scenarios": {
+    "_comment": "EXAMPLE WITH 5 SCREENSHOTS — adjust count (4–8) to match your project needs.",
     "01": {
-      "name": "Hourly Wage",
-      "desc": "Calculation of total pay (hours x wage)"
+      "name": "Your Catchy Slogan Here!",
+      "_name_note": "MARKETING SLOGAN: Short, punchy headline shown as overlay on the screenshot. NOT a feature label.",
+      "desc": "CAPTURE GUIDE: Navigate to the app's main/home screen. Ensure all primary UI elements are visible. No dialogs open.",
+      "_desc_note": "CAPTURE GUIDE: Describe the exact app state — which screen, what settings, what data to show."
     },
     "02": {
-      "name": "Intuitive UI",
-      "desc": "Simple arithmetic (addition/subtraction)"
+      "name": "Every Detail Counts",
+      "desc": "CAPTURE GUIDE: Open the core feature screen with sample data loaded. Show at least 10 data points to demonstrate richness."
     },
     "03": {
-      "name": "D-Day",
-      "desc": "Date difference calculation"
+      "name": "Powerful & Precise",
+      "desc": "CAPTURE GUIDE: Open the settings/configuration dialog. Show key toggles and options in their default state."
     },
     "04": {
-      "name": "Dark Mode",
-      "desc": "Premium dark interface"
+      "name": "Play Your Way",
+      "desc": "CAPTURE GUIDE: Show a secondary mode or feature. E.g., 2-player mode, dark theme, advanced filter panel open."
     },
     "05": {
-      "name": "History & Units",
-      "desc": "Calculation history and unit conversion"
+      "name": "Simple. Beautiful. Fast.",
+      "desc": "CAPTURE GUIDE: Show the result/summary/completion screen. E.g., game over screen with scores, calculation result, or chart view."
     }
   },
   "assets": {
-    "iconPath": "web/icons/Icon-512.png",
+    "iconPath": "assets/icon.png",
     "screenshotPathPattern": "store-assets/screenshots/{device}/{device}_{lang}_{num}_{suffix}.png",
     "suffixes": {
+      "_comment": "Keys must match scenario keys ('01'–'08'). Values are short lowercase filename identifiers.",
       "01": "main",
-      "02": "scenarios",
-      "03": "trading",
-      "04": "advanced",
-      "05": "light"
+      "02": "gameplay",
+      "03": "settings",
+      "04": "mode",
+      "05": "result"
     }
   },
   "languages": [
     {
       "code": "ko-KR",
       "name": "한국어",
-      "title": "복리계산기",
-      "featureSubtitle": "투자의 마법을 가장 직관적으로 설계하세요",
-      "shortDescription": "가장 직관적인 복리 계산기. 자산 성장을 한눈에 확인하세요.",
-      "fullDescription": "복리 계산기 전문가용 버전입니다. 다양한 시나리오와 트레이딩 모드를 지원합니다.",
-      "changelog": "• 전문가용 복리 계산 로직 업데이트\n• 다크 모드 UI 개선",
+      "title": "샘플 앱 (30자 이내)",
+      "featureSubtitle": "앱의 핵심 가치를 한 문장으로 (60자 이내)",
+      "shortDescription": "앱을 한 문장으로 설명하세요. 핵심 키워드 포함, 80자 이내.",
+      "fullDescription": "【앱이름】은 [핵심 기능]을 제공하는 [카테고리] 앱입니다.\n\n✔ 주요 기능 1: 설명\n✔ 주요 기능 2: 설명\n✔ 주요 기능 3: 설명\n✔ 주요 기능 4: 설명\n\n[앱의 차별점 또는 강점을 서술하세요. 검색에 유리한 키워드를 자연스럽게 포함하세요.]\n\n지원 언어: 한국어, 영어, 일본어 등\n\n[앱이름] — [한 줄 요약 슬로건]",
+      "changelog": "• 주요 변경사항 1\n• 주요 변경사항 2",
       "screens": [
-        "가장 직관적인 복리 계산기",
-        "한눈에 들어오는 자산 성장 차트",
-        "데이 트레이더를 위한 완벽 지원",
-        "고급 단위 적립 및 인출 시뮬레이션",
-        "다크 및 라이트 테마 지원"
+        "시나리오 01의 마케팅 슬로건 (한국어 번역)",
+        "시나리오 02의 마케팅 슬로건 (한국어 번역)",
+        "시나리오 03의 마케팅 슬로건 (한국어 번역)",
+        "시나리오 04의 마케팅 슬로건 (한국어 번역)",
+        "시나리오 05의 마케팅 슬로건 (한국어 번역)"
       ]
     },
     {
       "code": "en-US",
-      "name": "영어",
-      "title": "Compound Interest Calculator",
-      "featureSubtitle": "Visualize the Magic of Compounding",
-      "shortDescription": "Intuitive compound interest calculator. Visualize your wealth growth.",
-      "fullDescription": "Professional compound interest calculator supporting various scenarios and trading modes.",
-      "changelog": "• Updated professional compounding logic\n• Improved dark mode UI",
+      "name": "English",
+      "title": "Sample App (max 30 chars)",
+      "featureSubtitle": "Core value in one line (max 60 chars)",
+      "shortDescription": "One compelling sentence. Include primary keyword. Max 80 chars.",
+      "fullDescription": "[App Name] is a [category] app that [core value proposition].\n\n✔ Feature 1: Description\n✔ Feature 2: Description\n✔ Feature 3: Description\n✔ Feature 4: Description\n\n[Describe what makes this app unique. Naturally weave in relevant keywords users might search for.]\n\nSupported languages: English, Korean, Japanese, and more.\n\n[App Name] — [One-line slogan]",
+      "changelog": "• Major change 1\n• Major change 2",
       "screens": [
-        "Intuitive Compound Calculator",
-        "Visualize Your Wealth Growth",
-        "Advanced Day Trading Mode",
-        "Custom Contributions & Withdrawals",
-        "Dark & Light Themes"
+        "Scenario 01 marketing slogan (English)",
+        "Scenario 02 marketing slogan (English)",
+        "Scenario 03 marketing slogan (English)",
+        "Scenario 04 marketing slogan (English)",
+        "Scenario 05 marketing slogan (English)"
       ]
     }
   ]

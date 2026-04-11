@@ -1,9 +1,23 @@
 # marketing-tools/fastlane/Fastfile.common
 require 'json'
 
+# 헬퍼 함수: 프로젝트 루트를 지능적으로 찾습니다.
+def find_project_root
+  # 1단계: tools 디렉토리가 있는 곳을 찾음 (현재 위치에서 최대 4단계 위까지)
+  current = Dir.pwd
+  4.times do
+    if Dir.exist?(File.join(current, "tools")) && (File.exist?(File.join(current, "pubspec.yaml")) || File.exist?(File.join(current, "package.json")))
+      return current
+    end
+    current = File.expand_path("..", current)
+  end
+  # 못 찾으면 기본값 (보통 android/ 디렉토리에서 실행하므로 2단계 위)
+  return File.expand_path("../../", Dir.pwd)
+end
+
 # 헬퍼 함수: assets-config.json에서 언어 설정을 읽어옵니다.
 def get_languages(options = {})
-  project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+  project_root = options[:project_root] || find_project_root
   config_path = File.join(project_root, "tools", "assets-config.json")
   
   if File.exist?(config_path)
@@ -21,7 +35,7 @@ end
 platform :android do
   desc "Generate Google Play metadata from tools/assets-config.json"
   lane :generate_metadata do |options|
-    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    project_root = options[:project_root] || find_project_root
     
     # Path to the script relative to this file's location
     script_path = File.expand_path("../../scripts/generate_gp_metadata.py", __FILE__)
@@ -32,13 +46,18 @@ platform :android do
   desc "Organize screenshots for Fastlane upload"
   lane :organize_assets do |options|
     source_dir = options[:source] || "store-assets/screenshots"
-    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    project_root = options[:project_root] || find_project_root
     
     # Path to the script relative to this file's location
     script_path = File.expand_path("../../scripts/organize_gp_assets.py", __FILE__)
     
     # Cleanup before organizing
     metadata_dir = File.join(project_root, "android", "fastlane", "metadata", "android")
+    # Capacitor 프로젝트의 경우 경로가 다를 수 있으므로 체크
+    unless Dir.exist?(metadata_dir)
+      metadata_dir = File.join(project_root, "src-capacitor", "android", "fastlane", "metadata", "android")
+    end
+    
     if Dir.exist?(metadata_dir)
       UI.message("자산 정리 전 기존 메타데이터 삭제 중...")
       FileUtils.rm_rf(metadata_dir)
@@ -49,18 +68,22 @@ platform :android do
 
   desc "Capture screenshots using integration_test"
   lane :run_screenshot_test do |options|
-    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    project_root = options[:project_root] || find_project_root
     device_id = options[:device] || ENV["FLUTTER_DEVICE_ID"]
     device_arg = device_id ? "-d #{device_id}" : ""
     locale = options[:locale] || "ko"
     
     Dir.chdir(project_root) do
-      # Set environment variable for the driver
-      ENV["SCREENSHOT_LOCALE"] = locale
-      
-      # Run integration test to capture screenshots
-      # Pass LOCALE and SCREENSHOT_MODE as a dart-define for the app
-      sh "flutter drive #{device_arg} --driver=tools/marketing-tools/test_driver/integration_test.dart --target=integration_test/screenshot_test.dart --dart-define=LOCALE=#{locale} --dart-define=SCREENSHOT_MODE=true"
+      if File.exist?("pubspec.yaml")
+        # Set environment variable for the driver
+        ENV["SCREENSHOT_LOCALE"] = locale
+        
+        # Run integration test to capture screenshots
+        # Pass LOCALE and SCREENSHOT_MODE as a dart-define for the app
+        sh "flutter drive #{device_arg} --driver=tools/marketing-tools/test_driver/integration_test.dart --target=integration_test/screenshot_test.dart --dart-define=LOCALE=#{locale} --dart-define=SCREENSHOT_MODE=true"
+      else
+        UI.important("이 프로젝트는 Flutter 프로젝트가 아닙니다. run_screenshot_test 상위 레인에서 오버라이드하거나 별도의 캡처 레인을 사용하세요.")
+      end
     end
   end
 
@@ -73,7 +96,7 @@ platform :android do
     capture_all_screenshots(options)
 
     # 3. 추가 테마 자산 생성 (선택 사항, 스크립트 존재 시)
-    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    project_root = options[:project_root] || find_project_root
     capture_assets_script = File.join(project_root, "tools", "scripts", "capture_assets.js")
     
     if File.exist?(capture_assets_script)
@@ -88,7 +111,7 @@ platform :android do
 
   desc "모든 기기(Phone, Tablet 7/10) 및 모든 언어 스크린샷 일괄 촬영"
   lane :capture_all_screenshots do |options|
-    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    project_root = options[:project_root] || find_project_root
     screenshot_dir = File.join(project_root, "store-assets", "screenshots")
 
     # 기존 스크린샷 삭제 로직 추가
@@ -97,8 +120,13 @@ platform :android do
       FileUtils.rm_rf(Dir.glob("#{screenshot_dir}/*/*.png"))
     end
 
-    # 연결된 기기 목록 확인
-    connected_devices = `flutter devices`.downcase
+    # 연결된 기기 목록 확인 (Flutter 프로젝트가 아니면 adb 사용)
+    connected_devices = ""
+    if File.exist?(File.join(project_root, "pubspec.yaml"))
+      connected_devices = `flutter devices`.downcase
+    else
+      connected_devices = `adb devices`.downcase
+    end
     
     # 에뮬레이터 ID 설정
     devices = {
@@ -112,7 +140,7 @@ platform :android do
 
     if available_devices.empty?
       UI.error("❌ 실행 중인 에뮬레이터를 찾을 수 없습니다.")
-      UI.message("팁: 'flutter emulators --launch <ID>' 등으로 에뮬레이터를 먼저 실행해 주세요.")
+      UI.message("팁: 에뮬레이터를 먼저 실행해 주세요.")
       raise "No active devices found for screenshots." unless options[:ignore_errors]
     end
 
@@ -134,14 +162,19 @@ platform :android do
 
   desc "Build AAB and upload to Play Store Internal Track"
   lane :upload_internal do |options|
-    project_root = options[:project_root] || File.expand_path("../../", Dir.pwd)
+    project_root = options[:project_root] || find_project_root
 
     # 1. Generate Metadata (This picks up changelogs from tools/assets-config.json)
     generate_metadata(project_root: project_root)
 
     # 2. Flutter Build (AAB)
-    Dir.chdir(project_root) do
-      sh("flutter build appbundle")
+    if File.exist?(File.join(project_root, "pubspec.yaml"))
+      Dir.chdir(project_root) do
+        sh("flutter build appbundle")
+      end
+    else
+      # Capacitor/Quasar build logic would be here, but we usually call this from android folder anyway
+      UI.message("Flutter 프로젝트가 아닙니다. 직접 빌드해 주세요.")
     end
 
     # 3. Upload to Google Play

@@ -10,6 +10,16 @@ App Store 및 Google Play 마케팅 자산을 자동화하기 위한 통합 툴�
 
 ---
 
+## How to use in your project
+
+### 1. Add as a Submodule
+```bash
+git submodule add https://github.com/yungjoong/marketing-tools.git tools/marketing-tools
+git submodule update --init --recursive
+```
+
+---
+
 ## 프로젝트 구조
 - `dashboard/`: 자산 생성 대시보드 (HTML/JS).
 - `scripts/`: 자동화 스크립트 (Python).

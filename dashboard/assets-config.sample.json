@@ -24,8 +24,9 @@
         "_shortDescription_RULE": "80 characters max. One compelling sentence summarizing the app's value.",
         "_fullDescription_RULE": "Max 4000 characters. Write as an ASO-optimized description: (1) Start with the most important keyword (app name/category), (2) List key features as bullet points or short paragraphs, (3) Include relevant search keywords naturally, (4) Mention unique differentiators. Aim for 300+ characters minimum.",
         "_featureSubtitle_RULE": "Short tagline for the Feature Graphic overlay (1024x500 banner). Keep under 60 characters.",
-        "_screens_RULE": "An array of marketing overlay texts for each screenshot. The array length MUST match the number of scenarios defined above (4–8). Each entry is the translated version of the scenario's 'name' — a short, catchy marketing phrase."
-      }
+        "_translation_RULE": "CRITICAL: Do NOT mix languages. Each entry MUST be entirely in its target language (e.g., Japanese entries should NOT contain Korean). Avoid literal translations; use natural, idiomatic expressions that sound native to the target country.",
+        "_screens_RULE": "An array of marketing overlay texts for each screenshot. The array length MUST match the number of scenarios defined above (4+). Each entry is the translated version of the scenario's 'name' — a short, catchy marketing phrase."
+        }
     }
   },
 

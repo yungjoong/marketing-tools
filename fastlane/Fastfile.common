@@ -148,12 +148,15 @@ platform :android do
     langs = options[:locale] ? [options[:locale]] : get_languages(options)
     UI.message("🚀 다음 언어들에 대해 자동 촬영을 시작합니다: #{langs.join(', ')}")
 
+    # 에뮬레이터가 여러 대일 경우를 대비해 각 기기 타입별로 하나씩만 매칭되도록 개선
     langs.each do |lang|
       UI.message("🌐 Language: #{lang} 시작")
-      available_devices.each do |type, id|
-        UI.message("📸 [#{lang}] Capturing #{type} (Device ID: #{id})...")
-        ENV["SCREENSHOT_DEVICE"] = type
-        run_screenshot_test(device: id, locale: lang)
+      devices.each do |type, id|
+        if connected_devices.include?(id.downcase)
+          UI.message("📸 [#{lang}] Capturing #{type} (Device ID: #{id})...")
+          ENV["SCREENSHOT_DEVICE"] = type
+          run_screenshot_test(device: id, locale: lang)
+        end
       end
     end
     

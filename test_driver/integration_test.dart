@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:integration_test/integration_test_driver_extended.dart';
 
 /// Generic integration test driver that saves screenshots to the host machine.
@@ -10,12 +9,12 @@ Future<void> main() {
 
   return integrationDriver(
     onScreenshot: (String name, List<int> image, [Map<String, Object?>? args]) async {
-      debugPrint('💾 Driver: Received screenshot bytes for "$name" (${image.length} bytes)');
+      print('💾 Driver: Received screenshot bytes for "$name" (${image.length} bytes)');
       // Standard path for marketing assets: store-assets/screenshots/{device}/
       // The suffix/num is provided via 'name' (e.g., '01_main')
       final File screenshot = await File('store-assets/screenshots/$device/${device}_${locale}_$name.png').create(recursive: true);
       await screenshot.writeAsBytes(image);
-      debugPrint('✅ Driver: Screenshot saved to ${screenshot.path}');
+      print('✅ Driver: Screenshot saved to ${screenshot.path}');
       return true;
     },
   );

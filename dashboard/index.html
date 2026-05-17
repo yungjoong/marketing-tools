@@ -226,8 +226,16 @@
                 { id: 'tablet10', name: '10인치 태블릿', w: 2048, h: 2732, mode: 'tablet' }
             ];
 
+            const hasCJK = (text) => /[\u3000-\u9fff\uac00-\ud7af\uf900-\ufaff]/.test(text);
+
             const fixTextLayout = (text) => {
                 if (!text) return "";
+                if (hasCJK(text)) {
+                    // CJK (Japanese/Korean/Chinese): insert ZWS between every character
+                    // Group characters so punctuation stays attached to the preceding character
+                    return text.split('').join('\u200B');
+                }
+                // Latin/Korean with spaces: wrap each word in nowrap span
                 return text.split(' ').map(word =>
                     `<span style="white-space: nowrap;">${word.split('').join('&ZeroWidthSpace;')}</span>`
                 ).join(' ');
@@ -275,7 +283,14 @@
                         const appEl = doc.getElementById('app');
                         const frameEl = doc.getElementById('frame');
 
-                        if (titleEl) titleEl.innerHTML = fixTextLayout(lang.screens[i-1]);
+                        if (titleEl) {
+                            titleEl.innerHTML = fixTextLayout(lang.screens[i-1]);
+                            // For CJK languages without spaces, enable character-level word break
+                            if (hasCJK(lang.screens[i-1])) {
+                                titleEl.style.wordBreak = 'break-all';
+                                titleEl.style.overflowWrap = 'anywhere';
+                            }
+                        }
                         if (imgEl) imgEl.src = imgPath;
                         if (device.mode === 'tablet') appEl.classList.add('tablet-mode');
                         if (isLandscape) appEl.classList.add('landscape-mode');

@@ -9,11 +9,13 @@ Future<void> main() {
 
   return integrationDriver(
     onScreenshot: (String name, List<int> image, [Map<String, Object?>? args]) async {
+      // ignore: avoid_print
       print('💾 Driver: Received screenshot bytes for "$name" (${image.length} bytes)');
       // Standard path for marketing assets: store-assets/screenshots/{device}/
       // The suffix/num is provided via 'name' (e.g., '01_main')
       final File screenshot = await File('store-assets/screenshots/$device/${device}_${locale}_$name.png').create(recursive: true);
       await screenshot.writeAsBytes(image);
+      // ignore: avoid_print
       print('✅ Driver: Screenshot saved to ${screenshot.path}');
       return true;
     },

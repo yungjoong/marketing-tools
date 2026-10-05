@@ -158,8 +158,10 @@
                             if (config.theme.featureGraphicGradient) {
                                 document.documentElement.style.setProperty('--bg-gradient', config.theme.featureGraphicGradient);
                             }
-                            if (config.theme.primaryColor) {
-                                document.documentElement.style.setProperty('--accent-emerald', config.theme.primaryColor);
+                            if (config.theme.featureAccentColor) {
+                                document.documentElement.style.setProperty('--accent-emerald', config.theme.featureAccentColor);
+                            } else if (config.theme.primaryColor) {
+                                document.documentElement.style.setProperty('--accent-emerald', '#38BDF8');
                             }
                         }
                     }

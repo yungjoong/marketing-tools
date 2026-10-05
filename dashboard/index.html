@@ -164,7 +164,7 @@
                     <h2>${lang.name} <span class="lang-code">${lang.code.toUpperCase()}</span></h2>
                     <div class="action-bar">
                         <button class="btn btn-primary" onclick="generatePack('${lang.code}')">📦 전체 자산 ZIP 다운로드</button>
-                        <a href="templates/google_play_feature_graphic.html?title=${encodeURIComponent(lang.title)}&subtitle=${encodeURIComponent(lang.featureSubtitle)}&lang=${lang.code}&icon=${encodeURIComponent(iconUrl)}&img=${encodeURIComponent(screenshotUrl)}&config=${encodeURIComponent('../' + currentConfigParam)}" target="_blank" class="btn btn-outline">✨ 피처 그래픽 보기</a>
+                        <a href="templates/google_play_feature_graphic.html?t=${Date.now()}&title=${encodeURIComponent(lang.title)}&subtitle=${encodeURIComponent(lang.featureSubtitle)}&lang=${lang.code}&icon=${encodeURIComponent(iconUrl)}&img=${encodeURIComponent(screenshotUrl)}&config=${encodeURIComponent('../' + currentConfigParam)}" target="_blank" class="btn btn-outline">✨ 피처 그래픽 보기</a>
                     </div>
                 `;
                 listContainer.appendChild(card);
@@ -244,7 +244,7 @@
 
             // 1. 피처 그래픽
             statusText.innerText = `${lang.name}: 피처 그래픽 생성 중...`;
-            const featureBlob = await captureDirect('templates/google_play_feature_graphic.html', 1024, 500, (doc) => {
+            const featureBlob = await captureDirect('templates/google_play_feature_graphic.html?t=' + Date.now(), 1024, 500, (doc) => {
                 doc.querySelector('.title').innerHTML = fixTextLayout(lang.title);
                 doc.querySelector('.subtitle').innerHTML = fixTextLayout(lang.featureSubtitle);
                 
@@ -259,6 +259,9 @@
 
                 if (config.theme.featureGraphicGradient) {
                     doc.documentElement.style.setProperty('--bg-gradient', config.theme.featureGraphicGradient);
+                }
+                if (config.theme.featureAccentColor) {
+                    doc.documentElement.style.setProperty('--accent-emerald', config.theme.featureAccentColor);
                 }
             });
             zipContainer.file(`feature_graphic_${lang.code}.png`, featureBlob);
@@ -277,7 +280,7 @@
                     let h = device.h;
                     if (isLandscape) { w = device.h; h = device.w; }
 
-                    const blob = await captureDirect('templates/marketing_template.html', w, h, (doc) => {
+                    const blob = await captureDirect('templates/marketing_template.html?t=' + Date.now() + '_' + i, w, h, (doc) => {
                         const titleEl = doc.getElementById('title');
                         const imgEl = doc.getElementById('screenshot');
                         const appEl = doc.getElementById('app');

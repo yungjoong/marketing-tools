@@ -93,6 +93,23 @@ def generate_metadata(project_root_str):
             with open(changelogs_path / 'default.txt', 'w', encoding='utf-8') as f:
                 f.write(changelog[:500])
 
+            # Also generate <version_code>.txt from pubspec.yaml if present
+            pubspec_path = project_root / 'pubspec.yaml'
+            if pubspec_path.exists():
+                try:
+                    with open(pubspec_path, 'r', encoding='utf-8') as pf:
+                        for line in pf:
+                            if line.strip().startswith('version:'):
+                                ver = line.split(':', 1)[1].strip()
+                                if '+' in ver:
+                                    build_num = ver.split('+')[1].strip()
+                                    if build_num.isdigit():
+                                        with open(changelogs_path / f'{build_num}.txt', 'w', encoding='utf-8') as cf:
+                                            cf.write(changelog[:500])
+                                break
+                except Exception:
+                    pass
+
         print(f"Generated metadata for {gp_locale}")
 
 if __name__ == '__main__':

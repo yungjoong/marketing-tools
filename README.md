@@ -53,6 +53,24 @@ npx serve .
 python scripts/generate_gp_metadata.py --root ../../../
 ```
 
+### 4. Google Play 메타데이터 즉시 업로드 (API)
+`assets-config.json`의 메타데이터를 Google Play Console에 즉시 커밋합니다.
+
+```bash
+python scripts/update_play_store_metadata.py --root .
+```
+
+### 5. Google Play 스토어 통계 수집 및 분석
+`.env` 파일에 `PLAY_STORE_STATS_BUCKET=pubsite_prod_...`를 설정하면, Google Cloud Storage에서 최신 방문자/설치 CSV 리포트를 다운로드하고 분석합니다.
+
+```bash
+# 1) 통계 수집
+python scripts/fetch_play_store_stats.py --root .
+
+# 2) 통계 분석 요약
+python scripts/analyze_play_store_stats.py --root .
+```
+
 ---
 
 ## 📸 스크린샷 및 자산 규칙

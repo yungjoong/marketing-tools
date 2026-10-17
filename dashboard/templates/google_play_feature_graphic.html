@@ -11,6 +11,8 @@
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             --text-color: #ffffff;
             --accent-emerald: #10B981;
+            --glow-color: rgba(16, 185, 129, 0.15);
+            --frame-border-color: #2a2a2c;
             --font-family: 'Outfit', sans-serif;
         }
 
@@ -35,25 +37,28 @@
         .app-icon {
             width: 100px; height: 100px;
             border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 20px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 24px var(--glow-color);
             margin-bottom: 24px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1.5px solid rgba(255,255,255,0.18);
         }
 
         .title {
             color: var(--text-color);
-            font-size: 58px; font-weight: 700;
-            margin: 0; line-height: 1.1;
+            font-size: 52px; font-weight: 700;
+            margin: 0; line-height: 1.18;
             text-shadow: 0 4px 15px rgba(0,0,0,0.5);
             white-space: pre-wrap;
+            word-break: keep-all;
         }
 
         .subtitle {
             color: var(--accent-emerald);
-            font-size: 26px; font-weight: 600;
+            font-size: 25px; font-weight: 600;
             margin-top: 14px;
+            line-height: 1.35;
             letter-spacing: 0.02em;
             text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            word-break: keep-all;
         }
 
         /* Right: Floating Device Mockup */
@@ -66,7 +71,7 @@
 
         .device-frame {
             background: #000;
-            border: 6px solid #2a2a2c;
+            border: 5px solid var(--frame-border-color);
             border-radius: 40px;
             padding: 8px;
             box-shadow: -40px 40px 100px rgba(0,0,0,0.7);
@@ -83,7 +88,7 @@
         .glow {
             position: absolute;
             width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%);
+            background: radial-gradient(circle, var(--glow-color) 0%, rgba(0, 0, 0, 0) 70%);
             border-radius: 50%;
             z-index: 0;
         }
@@ -162,6 +167,12 @@
                                 document.documentElement.style.setProperty('--accent-emerald', config.theme.featureAccentColor);
                             } else if (config.theme.primaryColor) {
                                 document.documentElement.style.setProperty('--accent-emerald', '#38BDF8');
+                            }
+                            if (config.theme.glowColor) {
+                                document.documentElement.style.setProperty('--glow-color', config.theme.glowColor);
+                            }
+                            if (config.theme.frameBorderColor) {
+                                document.documentElement.style.setProperty('--frame-border-color', config.theme.frameBorderColor);
                             }
                         }
                     }

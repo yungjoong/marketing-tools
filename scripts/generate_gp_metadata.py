@@ -42,6 +42,9 @@ def generate_metadata(project_root_str):
         'en': 'en-US',
         'ja': 'ja-JP',
         'zh': 'zh-CN',
+        'de': 'de-DE',
+        'fr': 'fr-FR',
+        'pt': 'pt-BR',
         'ru': 'ru-RU',
         'es': 'es-ES',
         'vi': 'vi'
